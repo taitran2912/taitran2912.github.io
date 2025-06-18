@@ -61,35 +61,17 @@ window.addEventListener('scroll', () => {
     });
 });
 
-// Scroll animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('animate');
-        }
-    });
-}, observerOptions);
-
-// Add scroll animation class to elements
-document.addEventListener('DOMContentLoaded', () => {
-    const animateElements = document.querySelectorAll('.skill-category, .about-card, .project-card, .stat-item');
-    animateElements.forEach(el => {
-        el.classList.add('scroll-animate');
-        observer.observe(el);
-    });
-});
-
-// Contact form handling
-document.getElementById('contactForm').addEventListener('submit', function(e) {
+// Enhanced Contact form handling with Formspree
+document.getElementById('contactForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    const form = this;
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const formStatus = document.getElementById('formStatus');
+    
     // Get form data
-    const formData = new FormData(this);
+    const formData = new FormData(form);
     const name = formData.get('name');
     const email = formData.get('email');
     const subject = formData.get('subject');
@@ -97,67 +79,68 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
     
     // Simple validation
     if (!name || !email || !subject || !message) {
-        alert('Vui lòng điền đầy đủ thông tin!');
+        showFormStatus('error', 'Vui lòng điền đầy đủ thông tin!');
         return;
     }
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        alert('Vui lòng nhập email hợp lệ!');
+        showFormStatus('error', 'Vui lòng nhập email hợp lệ!');
         return;
     }
     
-    // Simulate form submission
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    
-    submitBtn.textContent = 'Đang gửi...';
+    // Show loading state
     submitBtn.disabled = true;
+    btnText.innerHTML = '<span class="spinner"></span> Đang gửi...';
+    formStatus.style.display = 'none';
     
-    // Simulate API call
-    setTimeout(() => {
-        alert('Cảm ơn bạn đã liên hệ! Tôi sẽ phản hồi sớm nhất có thể.');
-        this.reset();
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    }, 2000);
-});
-
-// Typing animation for hero title
-function typeWriter(element, text, speed = 100) {
-    let i = 0;
-    element.innerHTML = '';
-    
-    function type() {
-        if (i < text.length) {
-            element.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(type, speed);
+    try {
+        // Submit to Formspree
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            // Success
+            showFormStatus('success', 'Cảm ơn bạn đã liên hệ! Tôi sẽ phản hồi sớm nhất có thể.');
+            form.reset();
+        } else {
+            // Error from Formspree
+            const data = await response.json();
+            if (data.errors) {
+                showFormStatus('error', 'Có lỗi xảy ra: ' + data.errors.map(error => error.message).join(', '));
+            } else {
+                showFormStatus('error', 'Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại!');
+            }
         }
+    } catch (error) {
+        // Network error
+        showFormStatus('error', 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối internet và thử lại!');
+    } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        btnText.innerHTML = 'Gửi tin nhắn';
     }
+});
+
+function showFormStatus(type, message) {
+    const formStatus = document.getElementById('formStatus');
+    formStatus.className = `form-status ${type}`;
     
-    type();
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    formStatus.innerHTML = `<i class="${icon}"></i>${message}`;
+    formStatus.style.display = 'block';
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+        formStatus.style.display = 'none';
+    }, 5000);
 }
-
-// Initialize typing animation when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    const heroTitle = document.querySelector('.hero-title');
-    if (heroTitle) {
-        const originalText = heroTitle.innerHTML;
-        // Uncomment the line below if you want typing animation
-        // typeWriter(heroTitle, originalText.replace(/<[^>]*>/g, ''), 50);
-    }
-});
-
-// Parallax effect for hero section
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-    if (hero) {
-        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
-    }
-});
 
 // Add loading animation to page
 window.addEventListener('load', () => {
@@ -194,57 +177,11 @@ document.querySelectorAll('.project-card').forEach(card => {
     });
 });
 
-// Add CSS for active nav link
-const style = document.createElement('style');
-style.textContent = `
-    .nav-link.active {
-        color: var(--primary-color) !important;
-    }
-    
-    .nav-link.active::after {
-        width: 100% !important;
-    }
-    
-    .loaded .fade-in-up {
-        animation: fadeInUp 0.6s ease-out forwards;
-    }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// Smooth reveal animation for sections
-const revealElements = document.querySelectorAll('section');
-const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, {
-    threshold: 0.1
-});
-
-revealElements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    revealObserver.observe(el);
-});
-
 // Add click effect to buttons
 document.querySelectorAll('.btn').forEach(btn => {
     btn.addEventListener('click', function(e) {
+        if (this.type === 'submit') return; // Skip for form submit buttons
+        
         const ripple = document.createElement('span');
         const rect = this.getBoundingClientRect();
         const size = Math.max(rect.width, rect.height);
@@ -273,15 +210,3 @@ document.querySelectorAll('.btn').forEach(btn => {
         }, 600);
     });
 });
-
-// Add ripple animation CSS
-const rippleStyle = document.createElement('style');
-rippleStyle.textContent = `
-    @keyframes ripple {
-        to {
-            transform: scale(2);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(rippleStyle);

@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trần Tấn Tài - Business Analyst Portfolio</title>
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -303,7 +303,7 @@
                     </div>
                 </div>
                 <div class="contact-form">
-                    <form id="contactForm">
+                    <form id="contactForm" action="https://formspree.io/f/xldnlolg" method="POST">
                         <div class="form-group">
                             <input type="text" id="name" name="name" placeholder="Họ và tên" required>
                         </div>
@@ -316,7 +316,10 @@
                         <div class="form-group">
                             <textarea id="message" name="message" placeholder="Tin nhắn" rows="5" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Gửi tin nhắn</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span class="btn-text">Gửi tin nhắn</span>
+                        </button>
+                        <div id="formStatus" class="form-status"></div>
                     </form>
                 </div>
             </div>
